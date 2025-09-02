@@ -2,7 +2,7 @@
   "name": "customer-service-portal",
   "type": "module",
   "packageManager": "pnpm@8.10.0",
-  "homepage": "https://yourusername.github.io/customer-service-portal",
+  "homepage": "https://flophero.github.io/customer-service-portal",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
