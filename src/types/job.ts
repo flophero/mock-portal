@@ -27,10 +27,16 @@ export interface CustomAlerts {
 
 export interface JobAlert {
   id: string;
-  type: 'ACCEPTED' | 'ONSITE' | 'COMPLETED' | 'OVERDUE';
+  type: 'ACCEPTED' | 'ONSITE' | 'COMPLETED' | 'OVERDUE' | string;
   message: string;
   timestamp: Date;
   acknowledged: boolean;
+  resolved?: boolean;
+  resolution?: string;
+  resolvedAt?: Date;
+  resolvedBy?: string;
+  severity?: 'low' | 'medium' | 'high';
+  jobId?: string;
 }
 
 export interface Job {
@@ -116,7 +122,9 @@ export interface Engineer {
   name: string;
   email: string;
   phone: string;
-  status: 'accept' | 'onsite' | 'travel' | 'completed' | 'require_revisit';
+  status: 'OOH' | 'On call' | 'travel' | 'completed' | 'require_revisit';
   syncStatus: 'synced' | 'pending' | 'error';
   avatar?: string;
+  shiftTiming?: string;
+  isOnHoliday?: boolean;
 }

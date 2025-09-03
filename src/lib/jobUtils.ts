@@ -69,36 +69,46 @@ export const mockEngineers: Engineer[] = [
     name: 'John Smith',
     email: 'john.smith@company.com',
     phone: '+1 (555) 123-4567',
-    status: 'accept',
-    syncStatus: 'synced'
+    status: 'OOH',
+    syncStatus: 'synced',
+    shiftTiming: '6:00 PM - 6:00 AM',
+    isOnHoliday: false
   },
   {
     name: 'Sarah Johnson',
     email: 'sarah.johnson@company.com',
     phone: '+1 (555) 234-5678',
-    status: 'onsite',
-    syncStatus: 'synced'
+    status: 'On call',
+    syncStatus: 'synced',
+    shiftTiming: '8:00 PM - 8:00 AM',
+    isOnHoliday: false
   },
   {
     name: 'Mike Davis',
     email: 'mike.davis@company.com',
     phone: '+1 (555) 345-6789',
     status: 'travel',
-    syncStatus: 'pending'
+    syncStatus: 'pending',
+    shiftTiming: '7:00 PM - 7:00 AM',
+    isOnHoliday: true
   },
   {
     name: 'Lisa Wilson',
     email: 'lisa.wilson@company.com',
     phone: '+1 (555) 456-7890',
-    status: 'accept',
-    syncStatus: 'synced'
+    status: 'OOH',
+    syncStatus: 'synced',
+    shiftTiming: '5:00 PM - 5:00 AM',
+    isOnHoliday: false
   },
   {
     name: 'Tom Brown',
     email: 'tom.brown@company.com',
     phone: '+1 (555) 567-8901',
     status: 'completed',
-    syncStatus: 'synced'
+    syncStatus: 'synced',
+    shiftTiming: '9:00 PM - 9:00 AM',
+    isOnHoliday: false
   }
 ];
 

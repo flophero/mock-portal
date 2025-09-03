@@ -19,7 +19,10 @@ import {
   Calendar,
   MapPin,
   User,
-  Phone
+  Phone,
+  Bell,
+  Briefcase,
+  ChevronDown
 } from 'lucide-react';
 
 interface MasterDashboardProps {
@@ -27,7 +30,7 @@ interface MasterDashboardProps {
   customers: Customer[];
   onJobCreate: () => void;
   onJobClick: (job: Job) => void;
-  onCustomerSelect: (customer: Customer) => void;
+  onAlertsClick: () => void;
 }
 
 export default function MasterDashboard({ 
@@ -35,11 +38,18 @@ export default function MasterDashboard({
   customers, 
   onJobCreate, 
   onJobClick,
-  onCustomerSelect 
+  onAlertsClick
 }: MasterDashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchResults, setSearchResults] = useState<{
+    jobs: Job[];
+    customers: Customer[];
+    sites: string[];
+    engineers: string[];
+  }>({ jobs: [], customers: [], sites: [], engineers: [] });
 
   // Filter jobs based on search and filters
   const filteredJobs = jobs.filter(job => {
@@ -64,30 +74,69 @@ export default function MasterDashboard({
     overdue: jobs.filter(job => job.status === 'red').length
   };
 
-  // Generate end of shift report
-  const generateEndOfShiftReport = () => {
-    const today = new Date().toDateString();
-    const todayJobs = jobs.filter(job => 
-      job.dateLogged.toDateString() === today
-    );
+  // Calculate total alerts
+  const totalAlerts = jobs.filter(job => 
+    job.status === 'red' || job.priority === 'Critical'
+  ).length;
 
-    const report = {
-      date: today,
-      totalJobsLogged: todayJobs.length,
-      completedJobs: todayJobs.filter(job => job.status === 'green').length,
-      pendingJobs: todayJobs.filter(job => job.status === 'amber').length,
-      overdueJobs: todayJobs.filter(job => job.status === 'red').length,
-      emergencyJobs: todayJobs.filter(job => job.tags?.includes('Emergency')).length,
-      followUpRequired: todayJobs.filter(job => 
-        job.status === 'amber' || job.status === 'red'
-      ),
-      summary: `${todayJobs.length} jobs logged today. ${todayJobs.filter(job => job.status === 'green').length} completed, ${todayJobs.filter(job => job.status !== 'green').length} require follow-up.`
-    };
+  // Generate search results for dropdown
+  const generateSearchResults = (term: string) => {
+    if (term.length < 2) {
+      setSearchResults({ jobs: [], customers: [], sites: [], engineers: [] });
+      return;
+    }
 
-    return report;
+    const lowerTerm = term.toLowerCase();
+    
+    // Find matching jobs
+    const matchingJobs = jobs.filter(job => 
+      job.jobNumber.toLowerCase().includes(lowerTerm) ||
+      job.customer.toLowerCase().includes(lowerTerm) ||
+      job.site.toLowerCase().includes(lowerTerm) ||
+      job.engineer.toLowerCase().includes(lowerTerm) ||
+      job.description.toLowerCase().includes(lowerTerm)
+    ).slice(0, 5);
+
+    // Find matching customers
+    const matchingCustomers = customers.filter(customer =>
+      customer.name.toLowerCase().includes(lowerTerm) ||
+      customer.email.toLowerCase().includes(lowerTerm)
+    ).slice(0, 3);
+
+    // Find unique matching sites
+    const matchingSites = [...new Set(
+      jobs
+        .filter(job => job.site.toLowerCase().includes(lowerTerm))
+        .map(job => job.site)
+    )].slice(0, 3);
+
+    // Find unique matching engineers
+    const matchingEngineers = [...new Set(
+      jobs
+        .filter(job => job.engineer.toLowerCase().includes(lowerTerm))
+        .map(job => job.engineer)
+    )].slice(0, 3);
+
+    setSearchResults({
+      jobs: matchingJobs,
+      customers: matchingCustomers,
+      sites: matchingSites,
+      engineers: matchingEngineers
+    });
   };
 
-  const endOfShiftReport = generateEndOfShiftReport();
+  // Handle search input change
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    generateSearchResults(value);
+    setShowSearchDropdown(value.length >= 2);
+  };
+
+  // Handle search result selection
+  const handleSearchResultClick = (type: string, value: string) => {
+    setSearchTerm(value);
+    setShowSearchDropdown(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -97,10 +146,29 @@ export default function MasterDashboard({
           <h1 className="text-3xl font-bold text-gray-900">Master Dashboard</h1>
           <p className="text-muted-foreground">Out of Hours Support Management</p>
         </div>
-        <Button onClick={onJobCreate} className="bg-blue-600 hover:bg-blue-700">
-          <Plus size={16} className="mr-2" />
-          Log New Job
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* Alerts Indicator */}
+          <Button 
+            onClick={onAlertsClick} 
+            variant="outline" 
+            className="relative flex items-center gap-2"
+          >
+            <Bell className="h-4 w-4" />
+            Alerts
+            {totalAlerts > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              >
+                {totalAlerts}
+              </Badge>
+            )}
+          </Button>
+          <Button onClick={onJobCreate} className="bg-blue-600 hover:bg-blue-700">
+            <Plus size={16} className="mr-2" />
+            Log New Job
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -166,51 +234,7 @@ export default function MasterDashboard({
         </Card>
       </div>
 
-      {/* End of Shift Report */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="h-5 w-5" />
-            <span>End of Shift Report</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">{endOfShiftReport.totalJobsLogged}</p>
-              <p className="text-sm text-muted-foreground">Jobs Logged Today</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{endOfShiftReport.completedJobs}</p>
-              <p className="text-sm text-muted-foreground">Completed</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-amber-600">{endOfShiftReport.pendingJobs}</p>
-              <p className="text-sm text-muted-foreground">Pending</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-red-600">{endOfShiftReport.overdueJobs}</p>
-              <p className="text-sm text-muted-foreground">Overdue</p>
-            </div>
-          </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <p className="text-sm"><strong>Summary:</strong> {endOfShiftReport.summary}</p>
-            {endOfShiftReport.followUpRequired.length > 0 && (
-              <div className="mt-2">
-                <p className="text-sm font-medium text-red-600">Jobs requiring follow-up:</p>
-                <ul className="text-xs space-y-1 mt-1">
-                  {endOfShiftReport.followUpRequired.slice(0, 3).map(job => (
-                    <li key={job.id}>• {job.jobNumber} - {job.customer} - {job.engineer}</li>
-                  ))}
-                  {endOfShiftReport.followUpRequired.length > 3 && (
-                    <li className="text-muted-foreground">... and {endOfShiftReport.followUpRequired.length - 3} more</li>
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -219,9 +243,122 @@ export default function MasterDashboard({
           <Input
             placeholder="Search by customer, site, description, or engineer..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onFocus={() => searchTerm.length >= 2 && setShowSearchDropdown(true)}
+            onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
             className="pl-10"
           />
+          
+          {/* Search Dropdown */}
+          {showSearchDropdown && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+              {/* Jobs Section */}
+              {searchResults.jobs.length > 0 && (
+                <div className="p-2">
+                  <div className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                    <Briefcase className="h-3 w-3" />
+                    Jobs
+                  </div>
+                  {searchResults.jobs.map(job => (
+                    <div
+                      key={job.id}
+                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      onClick={() => {
+                        handleSearchResultClick('job', job.jobNumber);
+                        onJobClick(job);
+                      }}
+                    >
+                      <Briefcase className="h-4 w-4 text-blue-600" />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{job.jobNumber}</div>
+                        <div className="text-xs text-gray-500">{job.customer} • {job.site}</div>
+                      </div>
+                      <Badge 
+                        variant="secondary" 
+                        className={`${getStatusColor(job.status)} text-white text-xs`}
+                      >
+                        {job.status === 'green' ? 'Completed' : 
+                         job.status === 'amber' ? 'In Progress' : 'Overdue'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Customers Section */}
+              {searchResults.customers.length > 0 && (
+                <div className="p-2 border-t">
+                  <div className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                    <Building2 className="h-3 w-3" />
+                    Customers
+                  </div>
+                  {searchResults.customers.map(customer => (
+                    <div
+                      key={customer.id}
+                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      onClick={() => handleSearchResultClick('customer', customer.name)}
+                    >
+                      <Building2 className="h-4 w-4 text-green-600" />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{customer.name}</div>
+                        <div className="text-xs text-gray-500">{customer.sites.length} sites</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Sites Section */}
+              {searchResults.sites.length > 0 && (
+                <div className="p-2 border-t">
+                  <div className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    Sites
+                  </div>
+                  {searchResults.sites.map(site => (
+                    <div
+                      key={site}
+                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      onClick={() => handleSearchResultClick('site', site)}
+                    >
+                      <MapPin className="h-4 w-4 text-purple-600" />
+                      <div className="text-sm">{site}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Engineers Section */}
+              {searchResults.engineers.length > 0 && (
+                <div className="p-2 border-t">
+                  <div className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                    <User className="h-3 w-3" />
+                    Engineers
+                  </div>
+                  {searchResults.engineers.map(engineer => (
+                    <div
+                      key={engineer}
+                      className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      onClick={() => handleSearchResultClick('engineer', engineer)}
+                    >
+                      <User className="h-4 w-4 text-orange-600" />
+                      <div className="text-sm">{engineer}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* No Results */}
+              {searchResults.jobs.length === 0 && 
+               searchResults.customers.length === 0 && 
+               searchResults.sites.length === 0 && 
+               searchResults.engineers.length === 0 && (
+                <div className="p-4 text-center text-gray-500 text-sm">
+                  No results found for "{searchTerm}"
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         <div className="flex gap-2">
@@ -252,34 +389,7 @@ export default function MasterDashboard({
         </div>
       </div>
 
-      {/* Customer Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Building2 className="h-5 w-5" />
-            <span>Customer Search</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {customers.slice(0, 6).map(customer => (
-              <Button
-                key={customer.id}
-                variant="outline"
-                className="justify-start h-auto p-3"
-                onClick={() => onCustomerSelect(customer)}
-              >
-                <div className="text-left">
-                  <p className="font-medium">{customer.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {customer.sites?.length || 0} sites
-                  </p>
-                </div>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Jobs Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

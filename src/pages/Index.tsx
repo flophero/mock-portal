@@ -5,11 +5,19 @@ import { mockJobs, mockCustomers, mockEngineers } from '@/lib/jobUtils';
 import MasterDashboard from '@/components/MasterDashboard';
 import CustomerDashboard from '@/components/CustomerDashboard';
 import CustomerAlertsPortal from '@/components/CustomerAlertsPortal';
+import GlobalAlertsPortal from '@/components/GlobalAlertsPortal';
+import AllCustomersPage from '@/components/AllCustomersPage';
+import EndOfShiftReport from '@/components/EndOfShiftReport';
+import CustomerDetailPage from '@/components/CustomerDetailPage';
 import JobLogWizard from '@/components/JobLogWizard';
 import JobEditModal from '@/components/JobEditModal';
+import NavigationSidebar from '@/components/NavigationSidebar';
+import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { Users, Bell } from 'lucide-react';
 import JobDetailPage from './JobDetailPage';
 
-type View = 'master' | 'customer' | 'alerts' | 'wizard';
+type View = 'master' | 'customer' | 'alerts' | 'wizard' | 'reports' | 'customer-detail' | 'customer-alerts';
 
 export default function Index() {
   const { jobId } = useParams<{ jobId: string }>();
@@ -43,16 +51,43 @@ export default function Index() {
 
   const handleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);
-    setCurrentView('customer');
+    setCurrentView('customer-detail');
+  };
+
+  const handleViewChange = (view: View) => {
+    setCurrentView(view);
+  };
+
+  const handleHomepageClick = () => {
+    setCurrentView('master');
+    setSelectedCustomer(null);
   };
 
   // If we're on a job detail page, show the JobDetailPage
   if (jobId) {
     return (
-      <JobDetailPage 
-        jobs={jobs} 
-        onJobUpdate={handleJobSave}
-      />
+      <>
+        <NavigationSidebar 
+          currentView={currentView}
+          onViewChange={handleViewChange}
+          onHomepageClick={handleHomepageClick}
+          selectedCustomer={selectedCustomer?.name}
+        />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-semibold">Job Details</h1>
+            </div>
+          </header>
+          <div className="flex flex-1 flex-col gap-4 p-4">
+            <JobDetailPage 
+              jobs={jobs} 
+              onJobUpdate={handleJobSave}
+            />
+          </div>
+        </SidebarInset>
+      </>
     );
   }
 
@@ -65,31 +100,25 @@ export default function Index() {
             customers={customers}
             onJobCreate={() => setCurrentView('wizard')}
             onJobClick={handleJobClick}
-            onCustomerSelect={handleCustomerSelect}
+            onAlertsClick={() => setCurrentView('alerts')}
           />
         );
       
       case 'customer':
-        return selectedCustomer ? (
-          <CustomerDashboard
-            customer={selectedCustomer}
-            jobs={jobs}
-            engineers={mockEngineers}
+        return (
+          <AllCustomersPage
             onBack={() => setCurrentView('master')}
-            onJobClick={handleJobClick}
-            onAlertsPortal={() => setCurrentView('alerts')}
+            onCustomerSelect={handleCustomerSelect}
           />
-        ) : null;
+        );
       
       case 'alerts':
-        return selectedCustomer ? (
-          <CustomerAlertsPortal
-            customer={selectedCustomer}
-            jobs={jobs}
-            onBack={() => setCurrentView('customer')}
+        return (
+          <GlobalAlertsPortal
+            onBack={() => setCurrentView('master')}
             onJobUpdate={handleJobSave}
           />
-        ) : null;
+        );
       
       case 'wizard':
         return (
@@ -100,16 +129,76 @@ export default function Index() {
           />
         );
       
+      case 'reports':
+        return (
+          <EndOfShiftReport
+            onBack={() => setCurrentView('master')}
+          />
+        );
+      
+      case 'customer-detail':
+        return selectedCustomer ? (
+          <CustomerDetailPage
+            customer={selectedCustomer}
+            jobs={jobs}
+            onBack={() => setCurrentView('customer')}
+            onJobClick={handleJobClick}
+            onAlertsClick={() => setCurrentView('customer-alerts')}
+          />
+        ) : (
+          <div className="text-center py-12">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No customer selected</h3>
+            <p className="text-muted-foreground">Please select a customer to view details.</p>
+          </div>
+        );
+      
+      case 'customer-alerts':
+        return selectedCustomer ? (
+          <CustomerAlertsPortal
+            customer={selectedCustomer}
+            jobs={jobs}
+            onBack={() => setCurrentView('customer-detail')}
+            onJobUpdate={handleJobSave}
+          />
+        ) : (
+          <div className="text-center py-12">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No customer selected</h3>
+            <p className="text-muted-foreground">Please select a customer to view alerts.</p>
+          </div>
+        );
+      
       default:
         return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto py-6">
-        {renderCurrentView()}
-      </div>
+    <>
+      <NavigationSidebar 
+        currentView={currentView}
+        onViewChange={handleViewChange}
+        onHomepageClick={handleHomepageClick}
+        selectedCustomer={selectedCustomer?.name}
+      />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-semibold">
+              {currentView === 'master' && 'Master Dashboard'}
+              {currentView === 'customer' && 'All Customers'}
+              {currentView === 'customer-detail' && selectedCustomer && `${selectedCustomer.name} Details`}
+              {currentView === 'customer-alerts' && selectedCustomer && `${selectedCustomer.name} Alerts`}
+              {currentView === 'alerts' && 'Global Alerts Portal'}
+              {currentView === 'wizard' && 'New Job Wizard'}
+              {currentView === 'reports' && 'End of Shift Report'}
+            </h1>
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4">
+          {renderCurrentView()}
+        </div>
+      </SidebarInset>
       
       <JobEditModal
         job={selectedJob}
@@ -120,6 +209,6 @@ export default function Index() {
         }}
         onSave={handleJobSave}
       />
-    </div>
+    </>
   );
 }

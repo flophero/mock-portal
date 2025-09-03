@@ -472,3 +472,5 @@ export default function JobDetailPage({ jobs, onJobUpdate }: JobDetailPageProps)
     </div>
   );
 }
+
+

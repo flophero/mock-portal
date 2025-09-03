@@ -15,7 +15,8 @@ import {
   Phone,
   Mail,
   Calendar,
-  FileText
+  FileText,
+  Plus
 } from 'lucide-react';
 
 interface CustomerDashboardProps {
@@ -25,6 +26,7 @@ interface CustomerDashboardProps {
   onBack: () => void;
   onJobClick: (job: Job) => void;
   onAlertsPortal: () => void;
+  onJobCreate: () => void;
 }
 
 export default function CustomerDashboard({ 
@@ -33,7 +35,8 @@ export default function CustomerDashboard({
   engineers, 
   onBack, 
   onJobClick,
-  onAlertsPortal 
+  onAlertsPortal,
+  onJobCreate
 }: CustomerDashboardProps) {
   const [selectedSite, setSelectedSite] = useState<string>('all');
 
@@ -68,10 +71,16 @@ export default function CustomerDashboard({
             <p className="text-muted-foreground">{customer.sites?.length || 0} sites managed</p>
           </div>
         </div>
-        <Button onClick={onAlertsPortal} variant="outline">
-          <AlertTriangle size={16} className="mr-2" />
-          Alerts Portal
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={onJobCreate} className="bg-blue-600 hover:bg-blue-700">
+            <Plus size={16} className="mr-2" />
+            Log New Job
+          </Button>
+          <Button onClick={onAlertsPortal} variant="outline">
+            <AlertTriangle size={16} className="mr-2" />
+            Alerts Portal
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

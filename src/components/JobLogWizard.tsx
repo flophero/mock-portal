@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Job, Customer, Engineer } from '@/types/job';
 import { mockEngineers, mockJobTrades, mockTags, generateJobNumber } from '@/lib/jobUtils';
-import { ArrowLeft, ArrowRight, CheckCircle, User, Briefcase, Settings, Users, Check, FileText } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, User, Briefcase, Settings, Users, Check, FileText, Phone, Clock, Calendar, X } from 'lucide-react';
 
 interface JobLogWizardProps {
   customers: Customer[];
@@ -48,6 +48,7 @@ interface JobFormData {
 
 export default function JobLogWizard({ customers, onJobCreate, onCancel }: JobLogWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>(1);
+  const [selectedEngineerDetails, setSelectedEngineerDetails] = useState<Engineer | null>(null);
   const [formData, setFormData] = useState<JobFormData>({
     customer: '',
     site: '',
@@ -106,7 +107,7 @@ export default function JobLogWizard({ customers, onJobCreate, onCancel }: JobLo
       if (currentStep === 3) {
         const filteredEngineers = mockEngineers.filter(engineer => {
           if (formData.jobType === 'OOH') {
-            return engineer.status === 'accept' || engineer.status === 'onsite';
+            return engineer.status === 'OOH' || engineer.status === 'On call';
           } else {
             return engineer.status !== 'completed';
           }
@@ -604,16 +605,33 @@ export default function JobLogWizard({ customers, onJobCreate, onCancel }: JobLo
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
-                    onClick={() => updateFormData({ selectedEngineer: engineer.name })}
+                    onClick={() => {
+                      updateFormData({ selectedEngineer: engineer.name });
+                      setSelectedEngineerDetails(engineer);
+                    }}
                   >
                     <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-gray-900">{engineer.name}</h4>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-medium text-gray-900">{engineer.name}</h4>
+                          {engineer.isOnHoliday && (
+                            <Badge variant="destructive" className="text-xs">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              On Holiday
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-600">{engineer.email}</p>
                         <p className="text-sm text-gray-600">{engineer.phone}</p>
+                        {engineer.shiftTiming && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <Clock className="h-3 w-3 text-gray-400" />
+                            <span className="text-xs text-gray-500">{engineer.shiftTiming}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="text-right">
-                        <Badge variant={engineer.status === 'accept' ? 'default' : 'secondary'}>
+                        <Badge variant={engineer.status === 'OOH' || engineer.status === 'On call' ? 'default' : 'secondary'}>
                           {engineer.status}
                         </Badge>
                         <div className="text-xs text-gray-500 mt-1">
@@ -766,6 +784,77 @@ export default function JobLogWizard({ customers, onJobCreate, onCancel }: JobLo
           </div>
         </CardContent>
       </Card>
+
+      {/* Engineer Details Modal */}
+      {selectedEngineerDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Engineer Details</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedEngineerDetails(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-gray-900">{selectedEngineerDetails.name}</h4>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant={selectedEngineerDetails.status === 'OOH' || selectedEngineerDetails.status === 'On call' ? 'default' : 'secondary'}>
+                    {selectedEngineerDetails.status}
+                  </Badge>
+                  {selectedEngineerDetails.isOnHoliday && (
+                    <Badge variant="destructive" className="text-xs">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      On Holiday
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-600">{selectedEngineerDetails.phone}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-600">{selectedEngineerDetails.email}</span>
+                </div>
+                {selectedEngineerDetails.shiftTiming && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm text-gray-600">{selectedEngineerDetails.shiftTiming}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  className="flex-1"
+                  onClick={() => {
+                    // In a real app, this would initiate a call
+                    alert(`Calling ${selectedEngineerDetails.name} at ${selectedEngineerDetails.phone}`);
+                  }}
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call Engineer
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedEngineerDetails(null)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
