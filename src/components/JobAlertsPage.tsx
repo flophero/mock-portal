@@ -60,15 +60,15 @@ export default function JobAlertsPage({ customer, jobs, onBack }: JobAlertsPageP
   const getSyncStatusColor = (status: string) => {
     switch (status) {
       case 'accepted':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-500 text-white border-green-600 shadow-sm';
       case 'traveling':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-500 text-white border-blue-600 shadow-sm';
       case 'onsite':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'bg-orange-500 text-white border-orange-600 shadow-sm';
       case 'revisit required':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-500 text-white border-red-600 shadow-sm';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-500 text-white border-gray-600 shadow-sm';
     }
   };
 

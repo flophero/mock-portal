@@ -14,25 +14,25 @@ export default function StatusBadge({ status, reason }: StatusBadgeProps) {
         return {
           icon: CheckCircle,
           text: 'Completed',
-          className: 'bg-green-100 text-green-800 border-green-200',
+          className: 'bg-emerald-500 text-white border-emerald-600 shadow-sm',
         };
       case 'amber':
         return {
           icon: Clock,
           text: 'In Progress',
-          className: 'bg-amber-100 text-amber-800 border-amber-200',
+          className: 'bg-amber-500 text-white border-amber-600 shadow-sm',
         };
       case 'red':
         return {
           icon: AlertTriangle,
           text: 'Issue',
-          className: 'bg-red-100 text-red-800 border-red-200',
+          className: 'bg-red-500 text-white border-red-600 shadow-sm',
         };
       default:
         return {
           icon: Clock,
           text: 'Unknown',
-          className: 'bg-gray-100 text-gray-800 border-gray-200',
+          className: 'bg-gray-500 text-white border-gray-600 shadow-sm',
         };
     }
   };

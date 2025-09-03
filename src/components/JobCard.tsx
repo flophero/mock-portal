@@ -39,15 +39,15 @@ export default function JobCard({ job, onUpdateStatus }: JobCardProps) {
   const getPriorityColor = (priority: Job['priority']) => {
     switch (priority) {
       case 'Critical':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-600 text-white border-red-700 shadow-sm';
       case 'High':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'bg-orange-500 text-white border-orange-600 shadow-sm';
       case 'Medium':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-yellow-500 text-white border-yellow-600 shadow-sm';
       case 'Low':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-green-500 text-white border-green-600 shadow-sm';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-gray-500 text-white border-gray-600 shadow-sm';
     }
   };
 

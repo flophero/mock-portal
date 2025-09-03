@@ -4,28 +4,28 @@ import { Job, Customer, Engineer } from '@/types/job';
 export const getStatusColor = (status: Job['status']): string => {
   switch (status) {
     case 'green':
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'bg-emerald-500 text-white border-emerald-600 shadow-sm';
     case 'amber':
-      return 'bg-amber-100 text-amber-800 border-amber-200';
+      return 'bg-amber-500 text-white border-amber-600 shadow-sm';
     case 'red':
-      return 'bg-red-100 text-red-800 border-red-200';
+      return 'bg-red-500 text-white border-red-600 shadow-sm';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-gray-500 text-white border-gray-600 shadow-sm';
   }
 };
 
 export const getPriorityColor = (priority: Job['priority']): string => {
   switch (priority) {
     case 'Critical':
-      return 'bg-red-100 text-red-800 border-red-200';
+      return 'bg-red-600 text-white border-red-700 shadow-sm';
     case 'High':
-      return 'bg-orange-100 text-orange-800 border-orange-200';
+      return 'bg-orange-500 text-white border-orange-600 shadow-sm';
     case 'Medium':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      return 'bg-yellow-500 text-white border-yellow-600 shadow-sm';
     case 'Low':
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'bg-green-500 text-white border-green-600 shadow-sm';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-gray-500 text-white border-gray-600 shadow-sm';
   }
 };
 
