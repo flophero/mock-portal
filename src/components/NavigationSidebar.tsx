@@ -18,8 +18,7 @@ import {
   Settings,
   LogOut,
   User,
-  FileText,
-  Home
+  FileText
 } from 'lucide-react';
 
 interface NavigationSidebarProps {
@@ -127,20 +126,7 @@ export default function NavigationSidebar({
           <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => {
-                    onViewChange('master');
-                    if (onHomepageClick) {
-                      onHomepageClick();
-                    }
-                  }}
-                  tooltip="Return to homepage (Master Dashboard)"
-                >
-                  <Home className="h-4 w-4" />
-                  <span>Homepage</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => onViewChange('wizard')}
